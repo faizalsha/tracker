@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#090910">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery">
+  <meta name="description" content="Cricket injury recovery tracker — shin splints & ankle">
+
+  <title>Cricket Recovery</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- ── Top bar ──────────────────────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="topbar-title">CRICKET <span>RECOVERY</span></div>
+  <div class="streak-chip" onclick="showPage('progress')">
+    🔥 <span id="nav-streak">0</span>
+  </div>
+</header>
+
+<!-- ══════════════════════ TODAY ══════════════════════ -->
+<main class="page active" id="page-today">
+
+  <div class="today-hero">
+    <div class="day-info">
+      <div class="day-number">DAY <span id="day-num" class="bebas" style="color:var(--green)">1</span></div>
+      <div class="day-date mono" id="today-date"></div>
+    </div>
+    <div>
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+          <circle class="ring-bg"   cx="45" cy="45" r="38"/>
+          <circle class="ring-fill" id="ring-fill" cx="45" cy="45" r="38"
+            stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
+        </svg>
+        <div class="ring-inner">
+          <span class="ring-pct" id="ring-pct">0%</span>
+          <span class="ring-lbl mono">TODAY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-chip"><div class="n" id="s-done">0</div><div class="l">DONE</div></div>
+    <div class="stat-chip"><div class="n" id="s-left">0</div><div class="l">LEFT</div></div>
+    <div class="stat-chip"><div class="n" id="s-streak">0</div><div class="l">STREAK</div></div>
+  </div>
+
+  <div class="insight-card">
+    <span class="insight-emoji">💡</span>
+    <div class="insight-text" id="insight-text">Loading insight…</div>
+  </div>
+
+  <div id="sections-wrap"></div>
+
+  <button class="reset-btn" onclick="resetToday()">↺ RESET TODAY'S PROGRESS</button>
+</main>
+
+<!-- ══════════════════════ PROGRESS ══════════════════════ -->
+<main class="page" id="page-progress">
+  <div class="page-title bebas">PROGRESS</div>
+
+  <div class="streak-grid">
+    <div class="streak-card"><div class="streak-num" id="ps-streak">0</div><div class="streak-lbl">CURRENT STREAK</div></div>
+    <div class="streak-card"><div class="streak-num" id="ps-best">0</div><div class="streak-lbl">BEST STREAK</div></div>
+    <div class="streak-card"><div class="streak-num" id="ps-days">0</div><div class="streak-lbl">DAYS LOGGED</div></div>
+    <div class="streak-card"><div class="streak-num" id="ps-avg">0%</div><div class="streak-lbl">AVG COMPLETION</div></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">📅 12-WEEK HEATMAP</div>
+    <div class="heatmap-wrap"><div id="heatmap" class="heatmap-inner"></div></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">📈 DAILY COMPLETION — LAST 14 DAYS</div>
+    <canvas id="chart-daily" height="180"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">🏆 CATEGORY COMPLETION RATE</div>
+    <canvas id="chart-category" height="200"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">📊 WEEKLY AVERAGES</div>
+    <canvas id="chart-weekly" height="140"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">🧠 AUTO INSIGHTS</div>
+    <div class="insight-list" id="insights-list"></div>
+  </div>
+</main>
+
+<!-- ══════════════════════ HISTORY ══════════════════════ -->
+<main class="page" id="page-history">
+  <div class="history-toolbar">
+    <div class="page-title bebas" style="margin-bottom:0">HISTORY</div>
+    <button class="export-btn" onclick="exportCSV()">⬇ EXPORT CSV</button>
+  </div>
+  <div class="history-list" id="history-list"></div>
+</main>
+
+<!-- ══════════════════════ REMINDERS ══════════════════════ -->
+<main class="page" id="page-reminders">
+  <div class="page-title bebas">REMINDERS</div>
+
+  <!-- Notification status -->
+  <div class="notif-banner default" id="notif-banner">
+    <span class="nb-text" id="notif-status-text">Loading…</span>
+    <button class="enable-btn" id="enable-btn" onclick="requestNotifPermission()">Enable</button>
+    <button class="test-btn" onclick="sendTestNotification()">Test</button>
+  </div>
+
+  <!-- Add reminder form -->
+  <div class="rem-form">
+    <div class="form-title">+ ADD REMINDER</div>
+
+    <div class="form-group">
+      <label class="form-label">Label</label>
+      <input class="form-input" id="rem-label" type="text" placeholder="e.g. Morning exercises" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Time</label>
+      <input class="form-input" id="rem-time" type="time" value="07:00">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Repeat</label>
+      <select class="form-select" id="rem-repeat">
+        <option value="daily">Every day</option>
+        <option value="weekdays">Weekdays only (Mon–Fri)</option>
+        <option value="weekends">Weekends only (Sat–Sun)</option>
+        <option value="custom">Custom days…</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="custom-days" style="display:none">
+      <label class="form-label">Select days</label>
+      <div class="day-pills">
+        <div class="day-pill selected" onclick="toggleDayPill(this,0)">Mon</div>
+        <div class="day-pill selected" onclick="toggleDayPill(this,1)">Tue</div>
+        <div class="day-pill selected" onclick="toggleDayPill(this,2)">Wed</div>
+        <div class="day-pill selected" onclick="toggleDayPill(this,3)">Thu</div>
+        <div class="day-pill selected" onclick="toggleDayPill(this,4)">Fri</div>
+        <div class="day-pill selected" onclick="toggleDayPill(this,5)">Sat</div>
+        <div class="day-pill selected" onclick="toggleDayPill(this,6)">Sun</div>
+      </div>
+    </div>
+
+    <button class="add-rem-btn" onclick="addReminder()">Add Reminder</button>
+  </div>
+
+  <!-- Reminder list -->
+  <div class="rem-list" id="rem-list"></div>
+
+  <!-- Suggested schedule -->
+  <div class="schedule-card">
+    <div class="chart-title">📋 SUGGESTED DAILY SCHEDULE</div>
+    <div class="sched-item"><span class="sched-time">06:30</span>Wake up + 15 mins morning sunlight</div>
+    <div class="sched-item"><span class="sched-time">07:00</span>Morning stretch (10 mins)</div>
+    <div class="sched-item"><span class="sched-time">07:30</span>Breakfast + supplements (D3, collagen)</div>
+    <div class="sched-item"><span class="sched-time">10:00</span>Strengthening exercises session</div>
+    <div class="sched-item"><span class="sched-time">13:00</span>Lunch — protein + anti-inflammatory foods</div>
+    <div class="sched-item"><span class="sched-time">16:00</span>Walking / running (as per current week)</div>
+    <div class="sched-item"><span class="sched-time">17:00</span>Ice shins & ankle + elevation (20 mins)</div>
+    <div class="sched-item"><span class="sched-time">18:00</span>Evening supplements (magnesium, calcium)</div>
+    <div class="sched-item"><span class="sched-time">21:00</span>Stretch + foam roll</div>
+    <div class="sched-item"><span class="sched-time">22:00</span>Wind down — 7–9 hrs sleep</div>
+  </div>
+</main>
+
+<!-- ── Bottom tab bar ────────────────────────────────────────────────────── -->
+<nav class="tabbar">
+  <button class="tab-btn active" id="tab-today"     onclick="showPage('today')">
+    <span class="tab-icon">📋</span>
+    <span class="tab-label">Today</span>
+  </button>
+  <button class="tab-btn" id="tab-progress"  onclick="showPage('progress')">
+    <span class="tab-icon">📊</span>
+    <span class="tab-label">Progress</span>
+  </button>
+  <button class="tab-btn" id="tab-history"   onclick="showPage('history')">
+    <span class="tab-icon">📅</span>
+    <span class="tab-label">History</span>
+  </button>
+  <button class="tab-btn" id="tab-reminders" onclick="showPage('reminders')">
+    <span class="tab-icon">🔔</span>
+    <span class="tab-label">Reminders</span>
+  </button>
+</nav>
+
+<!-- ── Install banner (shown on Android Chrome before install) ──────────── -->
+<div class="install-banner" id="install-banner" style="display:none">
+  <div class="install-text">
+    <strong>Add to Home Screen</strong>
+    Install for offline use + better notifications
+  </div>
+  <button class="install-do" onclick="doInstall()">Install</button>
+  <button class="install-close" onclick="this.closest('.install-banner').style.display='none'">✕</button>
+</div>
+
+<!-- ── Toast ─────────────────────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── Celebrate overlay ─────────────────────────────────────────────────── -->
+<div class="overlay" id="overlay" onclick="closeCelebrate()">
+  <div class="celebrate" onclick="event.stopPropagation()">
+    <div class="cel-emoji" id="cel-emoji">🏏</div>
+    <div class="cel-title bebas" id="cel-title">Section Done!</div>
+    <div class="cel-msg"   id="cel-msg">Keep building!</div>
+    <button class="cel-close" onclick="closeCelebrate()">Let's go! 💪</button>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>

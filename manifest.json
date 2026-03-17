@@ -1,0 +1,31 @@
+{
+  "name": "Cricket Recovery Tracker",
+  "short_name": "Recovery",
+  "description": "Personal cricket injury recovery tracker",
+  "start_url": "./index.html?source=pwa",
+  "display": "standalone",
+  "background_color": "#090910",
+  "theme_color": "#090910",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "categories": ["health", "fitness"],
+  "shortcuts": [
+    {
+      "name": "Today's Tasks",
+      "short_name": "Today",
+      "url": "./index.html?page=today",
+      "icons": [{ "src": "./icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Progress",
+      "short_name": "Progress",
+      "url": "./index.html?page=progress",
+      "icons": [{ "src": "./icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}
